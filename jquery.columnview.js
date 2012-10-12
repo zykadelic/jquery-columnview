@@ -8,6 +8,28 @@
  * Dependencies:
  * 	jQuery (developed under version 1.8.2)
  * 	jQuery.tmpl
+ * 
+ * Metaphor:
+ * The root "folder" (defined through the `nodes` key) is an Array. Each "file"
+ * (end node) is a regular array item in that array, with it's value being it's
+ * name. A "folder" is an Object, with the first key being it's name, and it's
+ * value as it's contents, defined as an Array. This array works the same way
+ * as the root - "files" are regular array items and "subfolders" are another
+ * Object. Example:
+ * 	nodes: [
+ * 		{'Folder 1': [
+ * 			{'Subfolder 1': ['File']},
+ * 			{'Subfolder 2': [
+ * 				'File 1', 'File 2', {'Subsubfolder': ['File 1', 'File 2']}
+ * 			]},
+ * 			'File'
+ * 		]},
+ * 		{'Folder 2': [
+ * 			{'Subfolder 1': ['File']},
+ * 			{'Subfolder 2': ['File 1', 'File 2', 'File 3', 'File 4']}
+ * 		]},
+ * 		'File'
+ * 	]
  */
 
 (function($){
