@@ -45,9 +45,9 @@
 				return $('<li>').text(text).appendTo(list);
 			},
 			
-			_runValidations: function(){
-				// TODO Add validations
-				if(!jQuery.tmpl) this._throwError("Couldn't find jQuery.tmpl plugin");
+			runValidations: function(){
+				if(!this.settings.element.length) this.throwError("Couldn't find element");
+				// if(!jQuery.tmpl) this.throwError("Couldn't find jQuery.tmpl plugin");
 			},
 			
 			throwError: function(error){
