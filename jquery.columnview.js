@@ -23,6 +23,7 @@
 			
 			_runValidations: function(){
 				// TODO Add validations
+				if(!jQuery.tmpl) this._throwError("Couldn't find jQuery.tmpl plugin");
 			},
 			
 			_throwError: function(error){
@@ -34,7 +35,6 @@
 	
 	
 	$.fn.columnView = function(options){
-		
 		// Default settings overriden with specified settings
 		var settings = $.extend({
 			// TODO Add settings
