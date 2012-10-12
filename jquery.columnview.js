@@ -12,13 +12,37 @@
 
 (function($){
 	// By wrapping the methods inside of a function, we can get an instance-like behavior
-	// without turning this into a widget (thus requiring jQuery UI) .andreas
+	// without turning this into a widget (and the need of jQuery UI) .andreas
 	var methods = function(){
 		return {
 			init: function(el, settings){
+				this.settings = settings;
+				this.rootElement = $('<ul>');
+				this.settings.element.html(this.rootElement);
+				this.runValidations();
+				this.drawNodes(this.settings.nodes, this.rootElement);
+			},
+			
+			drawNodes: function(nodes, list){
 				var _t = this;
-				_t.settings = settings;
-				_t._runValidations();
+				if(nodes.constructor === Object){
+					for(var key in nodes){
+						var li = _t.drawNodeItem(list, key);
+						_t.drawNodes(nodes[key], $('<ul>').appendTo(li));
+					}
+				}
+				else if(nodes.constructor === Array){
+					for(var i in nodes){
+						_t.drawNodes(nodes[i], list);
+					}
+				}
+				else if(nodes.constructor === String){
+					_t.drawNodeItem(list, nodes)
+				}
+			},
+			
+			drawNodeItem: function(list, text){
+				return $('<li>').text(text).appendTo(list);
 			},
 			
 			_runValidations: function(){
@@ -26,7 +50,7 @@
 				if(!jQuery.tmpl) this._throwError("Couldn't find jQuery.tmpl plugin");
 			},
 			
-			_throwError: function(error){
+			throwError: function(error){
 				throw new Error('[jQuery.columnView] ' + error);
 			}
 		}
@@ -37,7 +61,8 @@
 	$.fn.columnView = function(options){
 		// Default settings overriden with specified settings
 		var settings = $.extend({
-			// TODO Add settings
+			element: undefined,
+			nodes: []
 		}, options);
 		
 		return this.each(function(){

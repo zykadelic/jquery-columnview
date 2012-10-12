@@ -9,12 +9,28 @@
 	
 	<script type="text/javascript">
 		$(function(){
-			$('#tree-wrapper').columnView();
+			$('#tree-wrapper').columnView({
+				element: $('#tree-wrapper'),
+				nodes: [
+					{'Folder 1': [
+						{'Subfolder 1': ['File']},
+						'File',
+						{'Subfolder 2': [
+							'File 1', 'File 2', {'Subsubfolder': ['File 1', 'File 2']}
+						]}
+					]},
+					'File',
+					{'Folder 2': [
+						{'Subfolder 1': ['File']},
+						{'Subfolder 2': ['File 1', 'File 2', 'File 3', 'File 4']}
+					]}
+				]
+			});
 		});
 	</script>
 </head>
 <body>
 	<h1>jQuery ColumnView Plugin v0.x</h1>
-	<div id="tree-wrapper"></div>
+	<div id="tree-wrapper">Sexy columns here</div>
 </body>
 </html>
