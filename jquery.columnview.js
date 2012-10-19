@@ -61,16 +61,16 @@
 			
 			// Structuring data
 			
-			structureNodes: function(path, node, html){
+			structureNodes: function(path, node, nodes){
 				var t = this;
 				var copy = path.slice(0);
 				var _path = copy.slice(1); // Remove first item
 				var index = path[0];
-				html.push(t.structureNodeContent(node));
+				nodes.push(t.structureNodeContent(node));
 				if(_path.length){
-					html.push(t.structureNodes(_path, node.children[index], html));
+					t.structureNodes(_path, node.children[index], nodes);
 				}
-				return html;
+				return nodes;
 			},
 			
 			structureNodeContent: function(node){
