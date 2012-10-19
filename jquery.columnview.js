@@ -1,5 +1,4 @@
 /* jQuery ColumnView Plugin v0.x
- * Author: Andreas Fransson (zykadelic)
  * http://github.com/zykadelic/jquery-columnview
  * 
  * Licensed under the MIT license:
@@ -38,38 +37,95 @@
 	var methods = function(){
 		return {
 			init: function(el, settings){
-				this.settings = settings;
-				this.rootElement = $('<ul>');
-				this.settings.element.html(this.rootElement);
-				this.runValidations();
-				this.drawNodes(this.settings.nodes, this.rootElement);
+				var t				= this;
+				t.element		= el;
+				t.settings	= $.extend({
+					nodeTree: undefined,
+					currentNodeId: 0,
+					options: {}
+				}, settings);
+				
+				t.runValidations();
+				
+				var ul = $('<ul>').addClass('jcv-node-wrapper');
+				var path = t.findPath(t.settings.currentNodeId);
+				var nodes = t.structureNodes(path, t.settings.nodeTree, []);
+				console.log(nodes);
+				// t.element.html(ul.html(nodes));
+				
+				el.find('.jcv-node-item').on('click.columnView', function(){
+					// t.drawNodeFromId($(this).attr('data-id'));
+				});
 			},
 			
-			drawNodes: function(nodes, list){
-				var _t = this;
-				if(nodes.constructor === Object){
-					for(var key in nodes){
-						var li = _t.drawNodeItem(list, key);
-						_t.drawNodes(nodes[key], $('<ul>').appendTo(li));
-					}
+			
+			// Structuring data
+			
+			structureNodes: function(path, node, html){
+				var t = this;
+				var copy = path.slice(0);
+				var _path = copy.slice(1); // Remove first item
+				var index = path[0];
+				html.push(t.structureNodeContent(node));
+				if(_path.length){
+					html.push(t.structureNodes(_path, node.children[index], html));
 				}
-				else if(nodes.constructor === Array){
-					for(var i in nodes){
-						_t.drawNodes(nodes[i], list);
-					}
-				}
-				else if(nodes.constructor === String){
-					_t.drawNodeItem(list, nodes)
+				return html;
+			},
+			
+			structureNodeContent: function(node){
+				var t = this;
+				
+				// If this is the root node, draw it's children
+				if(node.children && node.children.constructor.name == 'Array'){
+					var nodes = [];
+					$.each(node.children, function(_, _node){
+						nodes.push(_node);
+					});
+					return nodes;
 				}
 			},
 			
-			drawNodeItem: function(list, text){
-				return $('<li>').text(text).appendTo(list);
+			findPath: function(id, node){
+				var t = this;
+				var path = [];
+				if(!node) node = t.settings.nodeTree;
+				return t.findPathHelper(id, node, path);
 			},
+			
+			findPathHelper: function(id, node, path){
+				var t = this;
+				if(node.id == id){
+					return path.slice(0);
+				}else{
+					if(node.children && node.children.constructor.name == 'Array'){
+						for(index in node.children){
+							var _path = path.slice(0); // Copy array
+							_path.push(index);
+							var returningPath = t.findPathHelper(id, node.children[index], _path.slice(0));
+							if(returningPath) return returningPath;
+						}
+					}
+				}
+			},
+			
+			
+			// Drawing HTML
+			
+			drawNode: function(node){
+				var li = $('<li>').addClass('jcv-node-item').attr('data-id', node.id);
+				li.html($.tmpl(node.tmpl, node.data));
+				return li;
+			},
+			
+			// drawNodeFromId: function(id){
+			// 	return this.drawNode(this.findNode(id));
+			// },
+			
 			
 			runValidations: function(){
-				if(!this.settings.element.length) this.throwError("Couldn't find element");
-				// if(!jQuery.tmpl) this.throwError("Couldn't find jQuery.tmpl plugin");
+				if(!this.element.length) this.throwError("Couldn't find element");
+				if(!jQuery.tmpl) this.throwError("Couldn't find jQuery.tmpl plugin");
 			},
 			
 			throwError: function(error){
@@ -80,13 +136,7 @@
 	
 	
 	
-	$.fn.columnView = function(options){
-		// Default settings overriden with specified settings
-		var settings = $.extend({
-			element: undefined,
-			nodes: []
-		}, options);
-		
+	$.fn.columnView = function(settings){
 		return this.each(function(){
 			new methods().init($(this), settings);
 		});
