@@ -49,12 +49,13 @@
 				t.runValidations();
 				t.element.html(t.rootElement);
 				
-				var path = t.findPath(t.settings.currentNodeId);
-				var nodes = t.structureNodes(path, t.settings.nodeTree, []);
-				t.drawNodes(nodes);
+				t.drawNodes();
 				
-				el.find('.jcv-node-item').on('click.columnView', function(){
-					// t.drawNodeFromId($(this).attr('data-id'));
+				el.find('.jcv-node-item').live('click.columnView', function(){
+					t.settings.currentNodeId = $(this).data('id');
+					t.rootElement.html('');
+					t.drawNodes();
+					el.find('.jcv-node-item[data-id=' + t.settings.currentNodeId + ']').addClass('active');
 				});
 			},
 			
@@ -112,7 +113,9 @@
 			
 			// Drawing HTML
 			
-			drawNodes: function(nodes){
+			drawNodes: function(){
+				var path = this.findPath(this.settings.currentNodeId);
+				var nodes = this.structureNodes(path, this.settings.nodeTree, []);
 				for(index in nodes){
 					this.drawColumn(nodes[index]);
 				}
