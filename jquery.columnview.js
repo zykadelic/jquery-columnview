@@ -37,21 +37,21 @@
 	var methods = function(){
 		return {
 			init: function(el, settings){
-				var t				= this;
-				t.element		= el;
-				t.settings	= $.extend({
+				var t					= this;
+				t.element			= el;
+				t.rootElement	= $('<ul>').addClass('jcv-root');
+				t.settings		= $.extend({
 					nodeTree: undefined,
 					currentNodeId: 0,
 					options: {}
 				}, settings);
 				
 				t.runValidations();
+				t.element.html(t.rootElement);
 				
-				var ul = $('<ul>').addClass('jcv-node-wrapper');
 				var path = t.findPath(t.settings.currentNodeId);
 				var nodes = t.structureNodes(path, t.settings.nodeTree, []);
-				console.log(nodes);
-				// t.element.html(ul.html(nodes));
+				t.drawNodes(nodes);
 				
 				el.find('.jcv-node-item').on('click.columnView', function(){
 					// t.drawNodeFromId($(this).attr('data-id'));
@@ -62,21 +62,23 @@
 			// Structuring data
 			
 			structureNodes: function(path, node, nodes){
-				var t = this;
 				var copy = path.slice(0);
 				var _path = copy.slice(1); // Remove first item
 				var index = path[0];
-				nodes.push(t.structureNodeContent(node));
-				if(_path.length){
-					t.structureNodes(_path, node.children[index], nodes);
+				
+				if(path.length){
+					nodes.push(this.structureNodeContent(node));
+					this.structureNodes(_path, node.children[index], nodes);
+				}else{
+					if(node.id == this.settings.currentNodeId){
+						var node = this.structureNodeContent(node);
+						if(node) nodes.push(node);
+					}
 				}
 				return nodes;
 			},
 			
 			structureNodeContent: function(node){
-				var t = this;
-				
-				// If this is the root node, draw it's children
 				if(node.children && node.children.constructor.name == 'Array'){
 					var nodes = [];
 					$.each(node.children, function(_, _node){
@@ -87,14 +89,12 @@
 			},
 			
 			findPath: function(id, node){
-				var t = this;
 				var path = [];
-				if(!node) node = t.settings.nodeTree;
-				return t.findPathHelper(id, node, path);
+				if(!node) node = this.settings.nodeTree;
+				return this.findPathHelper(id, node, path);
 			},
 			
 			findPathHelper: function(id, node, path){
-				var t = this;
 				if(node.id == id){
 					return path.slice(0);
 				}else{
@@ -102,7 +102,7 @@
 						for(index in node.children){
 							var _path = path.slice(0); // Copy array
 							_path.push(index);
-							var returningPath = t.findPathHelper(id, node.children[index], _path.slice(0));
+							var returningPath = this.findPathHelper(id, node.children[index], _path.slice(0));
 							if(returningPath) return returningPath;
 						}
 					}
@@ -111,6 +111,22 @@
 			
 			
 			// Drawing HTML
+			
+			drawNodes: function(nodes){
+				for(index in nodes){
+					this.drawColumn(nodes[index]);
+				}
+			},
+			
+			drawColumn: function(nodes){
+				var column = $('<li>').addClass('jcv-column');
+				column.appendTo(this.rootElement);
+				var ul = $('<ul>').addClass('jcv-column-content');
+				for(index in nodes){
+					ul.append(this.drawNode(nodes[index]));
+				}
+				column.html(ul);
+			},
 			
 			drawNode: function(node){
 				var li = $('<li>').addClass('jcv-node-item').attr('data-id', node.id);
