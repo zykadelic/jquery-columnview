@@ -67,10 +67,13 @@
 				// Convert tree structure to drawing input structure
 				var nodes = t.structureNodes(tree, path, currentId);
 								
+				console.log(nodes);
+				
 				// Create HTML from structure
 				t.drawNodes(nodes, currentId);				
 			},
 			
+			/*
 			// Structuring data
 			structureNodes: function(tree, path, currentId) {
 				return this.structureNodesHelper(path, tree, [], currentId);
@@ -111,7 +114,33 @@
 				}
 				return undefined;
 			},
-			
+			*/
+
+			// Structuring data
+			structureNodes: function(tree, path, currentId) {
+				return this.structureNodesHelper(path, tree.children, [], tree.id, currentId);
+			},
+						
+			structureNodesHelper: function(path, nodes, output, parentId, currentId) {
+				var copy = path.slice(0);
+				var _path = copy.slice(1);
+				if (path.length) {
+					output.push(nodes.slice(0));
+
+					var nextParent = nodes[path[0]];
+					var nextNodes = nextParent.children;
+					
+					// Add next column
+					this.structureNodesHelper(_path.slice(0), nextNodes, output, nextParent.id, currentId);
+				} else {
+					// Add column if parent was folder and selected
+					if (parentId == currentId && nodes && nodes.constructor.name == 'Array') {
+						output.push(nodes.slice(0));
+					}
+				}
+				return output;
+			},
+						
 			findPath: function(tree, id) {
 				var path = [];
 				return this.findPathHelper(id, tree, path);
