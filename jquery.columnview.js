@@ -49,48 +49,59 @@
 				t.runValidations();
 				t.element.html(t.rootElement);
 
-				// Find path from root to currentNode
-				var path = t.findPath(t.settings.nodeTree, t.settings.currentNodeId);
-				
-				// Convert tree structure to drawing input structure
-				var nodes = t.structureNodes(path, t.settings.nodeTree);
-				
-				// Create HTML from structure
-				t.drawNodes(nodes);
+				t.drawTree(t.settings.nodeTree, t.settings.currentNodeId);
 				
 				el.find('.jcv-node-item').live('click.columnView', function() {
 					t.settings.currentNodeId = $(this).data('id');
 					t.rootElement.html('');
-					t.drawNodes();
-					el.find('.jcv-node-item[data-id=' + t.settings.currentNodeId + ']').addClass('active');
+					t.drawTree(t.settings.nodeTree, t.settings.currentNodeId);
 				});
 			},
-						
-			// Structuring data
 			
-			structureNodes: function(path, tree) {
-				return structureNodesHelper(path, tree, [])
+			drawTree: function(tree, currentId) {
+				var t = this;
+				
+				// Find path from root to currentNode
+				var path = t.findPath(tree, currentId);
+								
+				// Convert tree structure to drawing input structure
+				var nodes = t.structureNodes(tree, path, currentId);
+								
+				// Create HTML from structure
+				t.drawNodes(nodes, currentId);				
 			},
 			
-			structureNodesHelper: function(path, node, nodes) {
+			// Structuring data
+			structureNodes: function(tree, path, currentId) {
+				return this.structureNodesHelper(path, tree, [], currentId);
+			},
+						
+			structureNodesHelper: function(path, tree, nodes, currentId) {
 				var copy = path.slice(0);
 				var _path = copy.slice(1); // Remove first item
-				var index = path[0];
 				
-				if (path.length) {
-					nodes.push(this.structureNodeContent(node));
-					this.structureNodes(_path, node.children[index], nodes);
+				// At current node depth?
+				if (path.length) {					
+					// Add list of children
+					nodes.push(this.structureNodeChildren(tree));
+					
+					// Next node in path
+					var index = path[0];
+					
+					// Add next column
+					this.structureNodesHelper(_path, node.children[index], nodes, currentId);
 				} else {
-					if (node.id == this.settings.currentNodeId) {
-						var node = this.structureNodeContent(node);
-						if (node) 
-							nodes.push(node);
+					if (node.id == currentId) {
+						// If current node has children (a folder), add them as well
+						var children = this.structureNodeChildren(node);
+						if (children) 
+							nodes.push(children);
 					}
 				}
 				return nodes;
 			},
 			
-			structureNodeContent: function(node) {
+			structureNodeChildren: function(node) {
 				if (node.children && node.children.constructor.name == 'Array') {
 					var nodes = [];
 					$.each(node.children, function(_, _node) {
@@ -98,9 +109,10 @@
 					});
 					return nodes;
 				}
+				return undefined;
 			},
 			
-			findPath: function(tree, id){
+			findPath: function(tree, id) {
 				var path = [];
 				return this.findPathHelper(id, tree, path);
 			},
@@ -133,24 +145,27 @@
 			
 			// Drawing HTML
 			
-			drawNodes: function(nodes) {
+			drawNodes: function(nodes, currentId) {
 				for (index in nodes) {
-					this.drawColumn(nodes[index]);
+					this.drawColumn(nodes[index], currentId);
 				}
 			},
 			
-			drawColumn: function(nodes) {
+			drawColumn: function(nodes, currentId) {
 				var column = $('<li>').addClass('jcv-column');
 				column.appendTo(this.rootElement);
 				var ul = $('<ul>').addClass('jcv-column-content');
 				for(index in nodes) {
-					ul.append(this.drawNode(nodes[index]));
+					ul.append(this.drawNode(nodes[index], currentId));
 				}
 				column.html(ul);
 			},
 			
-			drawNode: function(node) {
+			drawNode: function(node, currentId) {
 				var li = $('<li>').addClass('jcv-node-item').attr('data-id', node.id);
+				if (node.id == currentId)
+					li.addClass("active");
+					
 				li.html($.tmpl(node.tmpl, node.data));
 				return li;
 			},
