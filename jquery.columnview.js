@@ -37,101 +37,119 @@
 	var methods = function(){
 		return {
 			init: function(el, settings){
-				var t					= this;
-				t.element			= el;
-				t.rootElement	= $('<ul>').addClass('jcv-root');
-				t.settings		= $.extend({
+					var t			= this;
+					t.element		= el;
+					t.rootElement	= $('<ul>').addClass('jcv-root');
+					t.settings		= $.extend({
 					nodeTree: undefined,
 					currentNodeId: 0,
 					options: {}
 				}, settings);
-				
+					
 				t.runValidations();
 				t.element.html(t.rootElement);
+
+				// Find path from root to currentNode
+				var path = t.findPath(t.settings.nodeTree, t.settings.currentNodeId);
 				
-				t.drawNodes();
+				// Convert tree structure to drawing input structure
+				var nodes = t.structureNodes(path, t.settings.nodeTree);
 				
-				el.find('.jcv-node-item').live('click.columnView', function(){
+				// Create HTML from structure
+				t.drawNodes(nodes);
+				
+				el.find('.jcv-node-item').live('click.columnView', function() {
 					t.settings.currentNodeId = $(this).data('id');
 					t.rootElement.html('');
 					t.drawNodes();
 					el.find('.jcv-node-item[data-id=' + t.settings.currentNodeId + ']').addClass('active');
 				});
 			},
-			
-			
+						
 			// Structuring data
 			
-			structureNodes: function(path, node, nodes){
+			structureNodes: function(path, tree) {
+				return structureNodesHelper(path, tree, [])
+			},
+			
+			structureNodesHelper: function(path, node, nodes) {
 				var copy = path.slice(0);
 				var _path = copy.slice(1); // Remove first item
 				var index = path[0];
 				
-				if(path.length){
+				if (path.length) {
 					nodes.push(this.structureNodeContent(node));
 					this.structureNodes(_path, node.children[index], nodes);
-				}else{
-					if(node.id == this.settings.currentNodeId){
+				} else {
+					if (node.id == this.settings.currentNodeId) {
 						var node = this.structureNodeContent(node);
-						if(node) nodes.push(node);
+						if (node) 
+							nodes.push(node);
 					}
 				}
 				return nodes;
 			},
 			
-			structureNodeContent: function(node){
-				if(node.children && node.children.constructor.name == 'Array'){
+			structureNodeContent: function(node) {
+				if (node.children && node.children.constructor.name == 'Array') {
 					var nodes = [];
-					$.each(node.children, function(_, _node){
+					$.each(node.children, function(_, _node) {
 						nodes.push(_node);
 					});
 					return nodes;
 				}
 			},
 			
-			findPath: function(id, node){
+			findPath: function(tree, id){
 				var path = [];
-				if(!node) node = this.settings.nodeTree;
-				return this.findPathHelper(id, node, path);
+				return this.findPathHelper(id, tree, path);
 			},
 			
-			findPathHelper: function(id, node, path){
-				if(node.id == id){
+			findPathHelper: function(id, node, path) {
+				if (node.id == id) {
 					return path.slice(0);
-				}else{
-					if(node.children && node.children.constructor.name == 'Array'){
-						for(index in node.children){
-							var _path = path.slice(0); // Copy array
-							_path.push(index);
-							var returningPath = this.findPathHelper(id, node.children[index], _path.slice(0));
-							if(returningPath) return returningPath;
+				} else {
+					// Not leaf node?
+					if (node.children) {
+						// Given ID must be within given tree
+						if (node.children.constructor.name == 'Array') {
+							// Test sub-tree
+							for (index in node.children) {
+								// Augment path
+								var _path = path.slice(0); 
+								_path.push(index);
+								var returningPath = this.findPathHelper(id, node.children[index], _path.slice(0));
+								
+								// Found id?
+								if (returningPath) 
+									return returningPath;
+							}
 						}
 					}
-				}
+				}				
+				return undefined;
 			},
 			
 			
 			// Drawing HTML
 			
-			drawNodes: function(){
-				var path = this.findPath(this.settings.currentNodeId);
-				var nodes = this.structureNodes(path, this.settings.nodeTree, []);
-				for(index in nodes){
+			drawNodes: function(nodes) {
+				for (index in nodes) {
 					this.drawColumn(nodes[index]);
 				}
 			},
 			
-			drawColumn: function(nodes){
+			drawColumn: function(nodes) {
 				var column = $('<li>').addClass('jcv-column');
 				column.appendTo(this.rootElement);
 				var ul = $('<ul>').addClass('jcv-column-content');
-				for(index in nodes){
+				for(index in nodes) {
 					ul.append(this.drawNode(nodes[index]));
 				}
 				column.html(ul);
 			},
 			
-			drawNode: function(node){
+			drawNode: function(node) {
 				var li = $('<li>').addClass('jcv-node-item').attr('data-id', node.id);
 				li.html($.tmpl(node.tmpl, node.data));
 				return li;
@@ -142,22 +160,22 @@
 			// },
 			
 			
-			runValidations: function(){
-				if(!this.element.length) this.throwError("Couldn't find element");
-				if(!jQuery.tmpl) this.throwError("Couldn't find jQuery.tmpl plugin");
+			runValidations: function() {
+				if (!this.element.length) 
+					this.throwError("Couldn't find element");
+				if (!jQuery.tmpl) 
+					this.throwError("Couldn't find jQuery.tmpl plugin");
 			},
 			
-			throwError: function(error){
+			throwError: function(error) {
 				throw new Error('[jQuery.columnView] ' + error);
 			}
-		}
-	}
+		};
+	};
 	
-	
-	
-	$.fn.columnView = function(settings){
+	$.fn.columnView = function(settings) {
 		return this.each(function(){
 			new methods().init($(this), settings);
 		});
-	}
+	};
 })(jQuery);
