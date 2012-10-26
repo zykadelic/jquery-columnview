@@ -49,16 +49,22 @@
 				t.runValidations();
 				t.element.html(t.rootElement);
 
-				t.drawTree(t.settings.nodeTree, t.settings.currentNodeId);
+				t.drawTree(t.rootElement, t.settings.nodeTree, t.settings.currentNodeId);
 				
 				el.find('.jcv-node-item').live('click.columnView', function() {
 					t.settings.currentNodeId = $(this).data('id');
+					
+					// if new depth < old depth then remove elements from this.nodes, this.path and HTML elemenmts
+					// if new depth = old depth, do nothing
+					// then possibly expand one level if user clicked on folder
+					// find new current node by traversing path from root, then back up (old_depth - new_depth) steps, then look at all nodes in resulting column
+					
 					t.rootElement.html('');
-					t.drawTree(t.settings.nodeTree, t.settings.currentNodeId);
+					t.drawTree(t.rootElement, t.settings.nodeTree, t.settings.currentNodeId);
 				});
 			},
 			
-			drawTree: function(tree, currentId) {
+			drawTree: function(htmlRoot, tree, currentId) {
 				// Find path from root to currentNode
 				this.path = this.findPath(tree, currentId);
 								
@@ -66,7 +72,7 @@
 				this.nodes = this.structureNodes(tree, this.path, currentId);
 							
 				// Create HTML from structure
-				this.drawNodes(this.nodes, currentId);				
+				this.drawNodes(htmlRoot, this.nodes, currentId);				
 			},
 			
 			/*
@@ -172,20 +178,21 @@
 			
 			// Drawing HTML
 			
-			drawNodes: function(nodes, currentId) {
+			drawNodes: function(root, nodes, currentId) {
 				for (index in nodes) {
-					this.drawColumn(nodes[index], index, currentId);
+					var column = this.drawColumn(nodes[index], index, currentId);
+					column.appendTo(root);
 				}
 			},
 			
 			drawColumn: function(columnNodes, depth, currentId) {
 				var column = $('<li>').addClass('jcv-column');
-				column.appendTo(this.rootElement);
 				var ul = $('<ul>').addClass('jcv-column-content');
 				for(index in columnNodes) {
 					ul.append(this.drawNode(columnNodes[index], depth, currentId));
 				}
 				column.html(ul);
+				return column
 			},
 			
 			drawNode: function(node, depth, currentId) {
