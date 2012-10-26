@@ -34,13 +34,13 @@
 (function($){
 	// By wrapping the methods inside of a function, we can get an instance-like behavior
 	// without turning this into a widget (and the need of jQuery UI) .andreas
-	var methods = function(){
+	var methods = function() {
 		return {
-			init: function(el, settings){
-					var t			= this;
-					t.element		= el;
-					t.rootElement	= $('<ul>').addClass('jcv-root');
-					t.settings		= $.extend({
+			init: function(el, settings) {
+				var t			= this;
+				t.element		= el;
+				t.rootElement	= $('<ul>').addClass('jcv-root');
+				t.settings		= $.extend({
 					nodeTree: undefined,
 					currentNodeId: 0,
 					options: {}
@@ -59,18 +59,14 @@
 			},
 			
 			drawTree: function(tree, currentId) {
-				var t = this;
-				
 				// Find path from root to currentNode
-				var path = t.findPath(tree, currentId);
+				this.path = this.findPath(tree, currentId);
 								
 				// Convert tree structure to drawing input structure
-				var nodes = t.structureNodes(tree, path, currentId);
-								
-				console.log(nodes);
-				
+				this.nodes = this.structureNodes(tree, this.path, currentId);
+							
 				// Create HTML from structure
-				t.drawNodes(nodes, currentId);				
+				this.drawNodes(this.nodes, currentId);				
 			},
 			
 			/*
@@ -122,8 +118,11 @@
 			},
 						
 			structureNodesHelper: function(path, nodes, output, parentId, currentId) {
+				// Remove first path index
 				var copy = path.slice(0);
 				var _path = copy.slice(1);
+				
+				// Have we reached current node?
 				if (path.length) {
 					output.push(nodes.slice(0));
 
@@ -133,10 +132,9 @@
 					// Add next column
 					this.structureNodesHelper(_path.slice(0), nextNodes, output, nextParent.id, currentId);
 				} else {
-					// Add column if parent was folder and selected
-					if (parentId == currentId && nodes && nodes.constructor.name == 'Array') {
+					// Add extra column if parent was folder and selected
+					if (parentId == currentId && nodes && nodes.constructor.name == 'Array')
 						output.push(nodes.slice(0));
-					}
 				}
 				return output;
 			},
@@ -176,22 +174,22 @@
 			
 			drawNodes: function(nodes, currentId) {
 				for (index in nodes) {
-					this.drawColumn(nodes[index], currentId);
+					this.drawColumn(nodes[index], index, currentId);
 				}
 			},
 			
-			drawColumn: function(nodes, currentId) {
+			drawColumn: function(columnNodes, depth, currentId) {
 				var column = $('<li>').addClass('jcv-column');
 				column.appendTo(this.rootElement);
 				var ul = $('<ul>').addClass('jcv-column-content');
-				for(index in nodes) {
-					ul.append(this.drawNode(nodes[index], currentId));
+				for(index in columnNodes) {
+					ul.append(this.drawNode(columnNodes[index], depth, currentId));
 				}
 				column.html(ul);
 			},
 			
-			drawNode: function(node, currentId) {
-				var li = $('<li>').addClass('jcv-node-item').attr('data-id', node.id);
+			drawNode: function(node, depth, currentId) {
+				var li = $('<li>').addClass('jcv-node-item').attr('data-id', node.id).attr('data-depth', depth);
 				if (node.id == currentId)
 					li.addClass("active");
 					
