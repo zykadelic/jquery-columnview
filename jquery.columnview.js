@@ -52,22 +52,66 @@
 				t.drawTree(t.rootElement, t.settings.nodeTree, t.settings.currentNodeId);
 				
 				el.find('.jcv-node-item').live('click.columnView', function() {
-					t.settings.currentNodeId = $(this).data('id');
-					
-					// if new depth < old depth then remove elements from this.nodes, this.path and HTML elemenmts
-					// if new depth = old depth, do nothing
-					// then possibly expand one level if user clicked on folder
-					// find new current node by traversing path from root, then back up (old_depth - new_depth) steps, then look at all nodes in resulting column
+					newId = $(this).data('id');
+					newDepth = $(this).data('depth');
 					
 					t.rootElement.html('');
-					t.drawTree(t.rootElement, t.settings.nodeTree, t.settings.currentNodeId);
+					t.updateTree(t.rootElement, t.nodes, t.settings.nodeTree, t.path, newId, newDepth);
 				});
+			},
+			
+			updateTree: function(htmlRoot, nodes, tree, path, newId, newDepth) {
+				// Update path 
+				newPath = path.slice(0, newDepth);
+
+				// Find new parent
+				parent = this.findNode(tree, newPath);
+				
+				// Update node structure list
+				newNodes = nodes.slice(0, newDepth - 1);
+				
+				// Find new current node
+				children = parent.children;
+				for (index in children) {
+					if (children[index].id == newId) {
+						newNode = children[index];
+						newPath.push(index);
+						break;
+					}
+				}
+								
+				// Add extra column if parent was folder and selected
+				children = newNode.children;
+				if (children && children.constructor.name == 'Array')
+					newNodes.push(children.slice(0));
+				
+				// Create HTML from structure
+				this.drawNodes(htmlRoot, newNodes, newId);
+				
+				this.path = newPath;
+				this.nodes = newNodes;
+				this.settings.currentNodeId = newId;
+				this.currentNodeDepth = newDepth;
+			},
+			
+			findNode: function(tree, path) {
+				if (path.length > 0) {
+					// Remove first path index
+					var copy = path.slice(0);
+					var _path = copy.slice(1);
+					var nextParent = tree.children[path[0]];
+					
+					return this.findNode(nextParent, _path.slice(0));
+				} else
+					return tree;
 			},
 			
 			drawTree: function(htmlRoot, tree, currentId) {
 				// Find path from root to currentNode
 				this.path = this.findPath(tree, currentId);
-								
+				
+				this.currentNodeDepth = this.path.length;
+				
 				// Convert tree structure to drawing input structure
 				this.nodes = this.structureNodes(tree, this.path, currentId);
 							
@@ -129,7 +173,7 @@
 				var _path = copy.slice(1);
 				
 				// Have we reached current node?
-				if (path.length) {
+				if (path.length > 0) {
 					output.push(nodes.slice(0));
 
 					var nextParent = nodes[path[0]];
@@ -192,7 +236,7 @@
 					ul.append(this.drawNode(columnNodes[index], depth, currentId));
 				}
 				column.html(ul);
-				return column
+				return column;
 			},
 			
 			drawNode: function(node, depth, currentId) {
