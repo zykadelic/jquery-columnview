@@ -66,9 +66,9 @@
 
 				// Find new parent
 				parent = this.findNode(tree, newPath);
-				
+
 				// Update node structure list
-				newNodes = nodes.slice(0, newDepth - 1);
+				newNodes = nodes.slice(0, newDepth + 1);
 				
 				// Find new current node
 				children = parent.children;
