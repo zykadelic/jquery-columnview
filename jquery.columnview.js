@@ -42,25 +42,29 @@
 				t.rootElement	= $('<ul>').addClass('jcv-root');
 				t.settings		= $.extend({
 					nodeTree: undefined,
-					currentNodeId: 0,
+					startNodeId: 0,
 					options: {}
 				}, settings);
 					
 				t.runValidations();
 				t.element.html(t.rootElement);
 
-				t.drawTree(t.rootElement, t.settings.nodeTree, t.settings.currentNodeId);
+				var data = t.drawTree(t.rootElement, t.settings.nodeTree, t.settings.startNodeId);
+				t.nodes = data.nodes;
+				t.path = data.path;
 				
 				el.find('.jcv-node-item').live('click.columnView', function() {
 					newId = $(this).data('id');
 					newDepth = $(this).data('depth');
 					
 					t.rootElement.html('');
-					t.updateTree(t.rootElement, t.nodes, t.settings.nodeTree, t.path, newId, newDepth);
+					var data = t.updateTree(t.rootElement, t.settings.nodeTree, t.path, t.nodes, newId, newDepth);
+					t.nodes = data.nodes;
+					t.path = data.path;
 				});
 			},
 			
-			updateTree: function(htmlRoot, nodes, tree, path, newId, newDepth) {
+			updateTree: function(htmlRoot, tree, path, nodes, newId, newDepth) {
 				// Update path 
 				newPath = path.slice(0, newDepth);
 
@@ -81,17 +85,26 @@
 				}
 								
 				// Add extra column if parent was folder and selected
-				children = newNode.children;
-				if (children && children.constructor.name == 'Array')
-					newNodes.push(children.slice(0));
+				if (newNode.children) {
+					// Only array for now
+					if (newNode.children.constructor.name == 'Array') {
+						children = this.fetchChildren(newNode);
+						newNodes.push(children.slice(0));												
+					}
+				}
 				
 				// Create HTML from structure
 				this.drawNodes(htmlRoot, newNodes, newId);
-				
-				this.path = newPath;
-				this.nodes = newNodes;
-				this.settings.currentNodeId = newId;
-				this.currentNodeDepth = newDepth;
+
+				return {'path': newPath, 'nodes': newNodes};
+			},
+
+			fetchChildren: function(node) {
+				if (node.children.constructor.name == 'Array') {
+					return node.children;
+				} else if (node.children.constructor.name == 'Hash') {
+					// Fetch via AJAX
+				}
 			},
 			
 			findNode: function(tree, path) {
@@ -108,59 +121,15 @@
 			
 			drawTree: function(htmlRoot, tree, currentId) {
 				// Find path from root to currentNode
-				this.path = this.findPath(tree, currentId);
-				
-				this.currentNodeDepth = this.path.length;
+				var path = this.findPath(tree, currentId);
 				
 				// Convert tree structure to drawing input structure
-				this.nodes = this.structureNodes(tree, this.path, currentId);
+				var nodes = this.structureNodes(tree, path, currentId);
 							
 				// Create HTML from structure
-				this.drawNodes(htmlRoot, this.nodes, currentId);				
+				this.drawNodes(htmlRoot, nodes, currentId);				
+				return {'path': path, 'nodes': nodes};
 			},
-			
-			/*
-			// Structuring data
-			structureNodes: function(tree, path, currentId) {
-				return this.structureNodesHelper(path, tree, [], currentId);
-			},
-						
-			structureNodesHelper: function(path, tree, nodes, currentId) {
-				var copy = path.slice(0);
-				var _path = copy.slice(1); // Remove first item
-				
-				// At current node depth?
-				if (path.length) {					
-					// Add list of children
-					nodes.push(this.structureNodeChildren(tree));
-					
-					// Next node in path
-					var index = path[0];
-					
-					// Add next column
-					this.structureNodesHelper(_path, node.children[index], nodes, currentId);
-				} else {
-					if (node.id == currentId) {
-						// If current node has children (a folder), add them as well
-						var children = this.structureNodeChildren(node);
-						if (children) 
-							nodes.push(children);
-					}
-				}
-				return nodes;
-			},
-			
-			structureNodeChildren: function(node) {
-				if (node.children && node.children.constructor.name == 'Array') {
-					var nodes = [];
-					$.each(node.children, function(_, _node) {
-						nodes.push(_node);
-					});
-					return nodes;
-				}
-				return undefined;
-			},
-			*/
 
 			// Structuring data
 			structureNodes: function(tree, path, currentId) {
@@ -247,11 +216,6 @@
 				li.html($.tmpl(node.tmpl, node.data));
 				return li;
 			},
-			
-			// drawNodeFromId: function(id){
-			// 	return this.drawNode(this.findNode(id));
-			// },
-			
 			
 			runValidations: function() {
 				if (!this.element.length) 
