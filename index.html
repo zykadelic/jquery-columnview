@@ -22,19 +22,45 @@
 						{
 							id: 2,
 							tmpl: $('#folder-tmpl'),
-							data: { name: "Folder 1 with data" },
+							data: { name: "Folder 1" },
 							children: [
 								{
 									id: 3,
 									tmpl: $('#file-tmpl'),
 									data: { name: "File 2" }
+								},
+								{
+									id: 5,
+									tmpl: $('#folder-tmpl'),
+									data: { name: "Folder 3" },
+									children: [
+										{
+											id: 6,
+											tmpl: $('#folder-tmpl'),
+											data: { name: "Folder 4" },
+											children: [
+												{
+													id: 7,
+													tmpl: $('#folder-tmpl'),
+													data: { name: "Folder 5" },
+													children: [
+														{
+															id: 8,
+															tmpl: $('#file-tmpl'),
+															data: { name: "File 3" }
+														}
+													]
+												}
+											]
+										}
+									]
 								}
 							]
 						},
 						{
 							id: 4,
 							tmpl: $('#folder-tmpl'),
-							data: { name: "Folder 2 with data" },
+							data: { name: "Folder 2" },
 							children: {
 								url: "http://ninjamagick.eu/columnview/getData",
 								data: { id: 4 } // Supply data for AJAX
@@ -48,15 +74,11 @@
 	
 	
 	<script type="text/html-template" id="folder-tmpl">
-		<div class="folder">
-			<a href="#">${name}</a>
-		</div>
+		<a href="#" class="folder">${name}</a>
 	</script>
 	
 	<script type="text/html-template" id="file-tmpl">
-		<div class="file">
-			<a href="#"><em>${name}</em></a>
-		</div>
+		<a href="#" class="file" style="font-style: italic;">${name}</a>
 	</script>
 </head>
 <body>
