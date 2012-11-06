@@ -99,6 +99,8 @@
 				return {'path': newPath, 'nodes': newNodes};
 			},
 
+			// In order to support AJAX, this needs to accept a callback. I recommend 
+			// using a callback in both cases, and just calling it directly.
 			fetchChildren: function(node) {
 				if (node.children.constructor.name == 'Array') {
 					return node.children;
