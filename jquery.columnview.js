@@ -38,13 +38,22 @@
 		return {
 			init: function(el, settings) {
 				var t			= this;
-				t.element		= el;
-				t.rootElement	= $('<ul>').addClass('jcv-root');
 				t.settings		= $.extend({
 					nodeTree: undefined,
 					startNodeId: 0,
-					options: {}
+					options: {},
+					listElement : '<ol>',
+					classes: {
+						root: 'jcv-root',
+						column: 'jcv-column',
+						columnContent: 'jcv-column-content',
+						node: 'jcv-node-item'
+					},
+					eventNamespace: 'columnview'
 				}, settings);
+
+				t.element		= el;
+				t.rootElement	= $(t.settings.listElement).addClass(t.settings.classes.root);
 					
 				t.runValidations();
 				t.element.html(t.rootElement);
@@ -53,7 +62,7 @@
 				t.nodes = data.nodes;
 				t.path = data.path;
 				
-				el.find('.jcv-node-item').live('click.columnView', function() {
+				el.find('.' + t.settings.classes.node).live('click.' + t.settings.eventNamespace, function() {
 					newId = $(this).data('id');
 					newDepth = $(this).data('depth');
 					
@@ -199,8 +208,9 @@
 			},
 			
 			drawColumn: function(columnNodes, depth, currentId) {
-				var column = $('<li>').addClass('jcv-column');
-				var ul = $('<ul>').addClass('jcv-column-content');
+				var t = this;
+				var column = $('<li>').addClass(t.settings.classes.column);
+				var ul = $(t.settings.listElement).addClass(t.settings.classes.columnContent);
 				for(index in columnNodes) {
 					ul.append(this.drawNode(columnNodes[index], depth, currentId));
 				}
@@ -209,7 +219,7 @@
 			},
 			
 			drawNode: function(node, depth, currentId) {
-				var li = $('<li>').addClass('jcv-node-item').attr('data-id', node.id).attr('data-depth', depth);
+				var li = $('<li>').addClass(this.settings.classes.node).attr('data-id', node.id).attr('data-depth', depth);
 				if (node.id == currentId)
 					li.addClass("active");
 					
