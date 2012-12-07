@@ -42,7 +42,7 @@
 					nodeTree: undefined,
 					startNodeId: 0,
 					options: {},
-					listElement : '<ol>',
+					listElement : '<ul>',
 					classes: {
 						root: 'jcv-root',
 						column: 'jcv-column',
@@ -67,9 +67,7 @@
 					newDepth = $(this).data('depth');
 					
 					t.rootElement.html('');
-					var data = t.updateTree(t.rootElement, t.settings.nodeTree, t.path, t.nodes, newId, newDepth);
-					t.nodes = data.nodes;
-					t.path = data.path;
+					t.updateTree(t.rootElement, t.settings.nodeTree, t.path, t.nodes, newId, newDepth);
 				});
 			},
 			
@@ -92,29 +90,55 @@
 						break;
 					}
 				}
-								
-				// Add extra column if parent was folder and selected
-				if (newNode.children) {
-					// Only array for now
-					if (newNode.children.constructor.name == 'Array') {
-						children = this.fetchChildren(newNode);
-						newNodes.push(children.slice(0));												
-					}
-				}
+							
+				callbackArgs = {
+					jcv: this,
+					root: htmlRoot,
+					nodes: newNodes,
+					id: newId,
+					path: newPath
+				};
 				
-				// Create HTML from structure
-				this.drawNodes(htmlRoot, newNodes, newId);
-
-				return {'path': newPath, 'nodes': newNodes};
+				// Add extra column if parent was folder and selected
+				if (newNode.children)
+					this.fetchChildren(newNode, this.updateTreeCallback, callbackArgs);
+				else
+					this.updateTreeCallback(callbackArgs);
 			},
 
+			updateTreeCallback: function(args) {
+				// Create HTML from structure
+				args.jcv.drawNodes(args.root, args.nodes, args.id);
+				
+				// Save data in this
+				args.jcv.nodes = args.nodes;
+				args.jcv.path = args.path;				
+			},
+			
 			// In order to support AJAX, this needs to accept a callback. I recommend 
 			// using a callback in both cases, and just calling it directly.
-			fetchChildren: function(node) {
+			fetchChildren: function(node, cb, cbArgs) {
 				if (node.children.constructor.name == 'Array') {
-					return node.children;
-				} else if (node.children.constructor.name == 'Hash') {
+					// Call callback directly
+					cbArgs.nodes.push(node.children.slice(0));
+					cb(cbArgs);
+				} else if (node.children.constructor.name == 'Object') {
 					// Fetch via AJAX
+					// Callback called asynchrously
+					$.ajax({
+						type: 'post',
+						url: node.children.url,
+						data: node.children.data,
+						dataType: 'json',
+						complete: function(children, status) {
+							// Do we need to convert the format in any way?
+							if (status == 'success' && children.constructor.name == 'Array')
+								cbArgs.nodes.push(children.slice(0));
+							
+							// Supplied callback
+							cb(cbArgs);
+						}
+					});	
 				}
 			},
 			
