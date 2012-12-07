@@ -106,6 +106,7 @@
 					this.updateTreeCallback(callbackArgs);
 			},
 
+			// Might need synchronisation (mutex or similar) if callback is called much later?
 			updateTreeCallback: function(args) {
 				// Create HTML from structure
 				args.jcv.drawNodes(args.root, args.nodes, args.id);
