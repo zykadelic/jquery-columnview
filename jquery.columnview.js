@@ -161,7 +161,7 @@
 				
 				// Convert tree structure to drawing input structure
 				var nodes = this.structureNodes(tree, path, currentId);
-							
+				
 				// Create HTML from structure
 				this.drawNodes(htmlRoot, nodes, currentId);				
 				return {'path': path, 'nodes': nodes};
@@ -228,7 +228,7 @@
 			// Drawing HTML
 			
 			drawNodes: function(root, nodes, currentId) {
-				for (index in nodes) {
+				for (var index = 0; index < nodes.length; index++) {
 					var column = this.drawColumn(nodes[index], index, currentId);
 					column.appendTo(root);
 				}
@@ -238,8 +238,8 @@
 				var t = this;
 				var column = $('<li>').addClass(t.settings.classes.column);
 				var ul = $(t.settings.listElement).addClass(t.settings.classes.columnContent);
-				for(index in columnNodes) {
-					ul.append(this.drawNode(columnNodes[index], depth, currentId));
+				for (var idx = 0; idx < columnNodes.length; idx++) {
+					ul.append(this.drawNode(columnNodes[idx], depth, currentId));
 				}
 				column.html(ul);
 				return column;
