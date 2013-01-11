@@ -16,36 +16,43 @@
 					children: [
 						{
 							id: 1,
+							clickable: 1,
 							tmpl: $('#file-tmpl'),
 							data: { name: "File 1" }
 						},
 						{
 							id: 2,
+							clickable: 1,
 							tmpl: $('#folder-tmpl'),
 							data: { name: "Folder 1" },
 							children: [
 								{
 									id: 3,
+									clickable: 1,
 									tmpl: $('#file-tmpl'),
 									data: { name: "File 2" }
 								},
 								{
 									id: 5,
+									clickable: 1,
 									tmpl: $('#folder-tmpl'),
 									data: { name: "Folder 3" },
 									children: [
 										{
 											id: 6,
+											clickable: 1,
 											tmpl: $('#folder-tmpl'),
 											data: { name: "Folder 4" },
 											children: [
 												{
 													id: 7,
+													clickable: 1,
 													tmpl: $('#folder-tmpl'),
 													data: { name: "Folder 5" },
 													children: [
 														{
 															id: 8,
+															clickable: 1,
 															tmpl: $('#file-tmpl'),
 															data: { name: "File 3" }
 														}
@@ -59,11 +66,12 @@
 						},
 						{
 							id: 4,
+							clickable: 1,
 							tmpl: $('#folder-tmpl'),
 							data: { name: "Folder 2" },
 							children: {
 								url: "http://ninjamagick.eu/columnview/getData",
-								data: { id: 4 } // Supply data for AJAX
+								data: { id: 9, clickable: 0 } // Supply data for AJAX
 							}
 						}
 					]

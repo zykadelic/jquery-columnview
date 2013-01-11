@@ -109,7 +109,7 @@
 			// Might need synchronisation (mutex or similar) if callback is called much later?
 			updateTreeCallback: function(args) {
 				// Create HTML from structure
-				args.jcv.drawNodes(args.root, args.nodes, args.id);
+				args.jcv.drawNodes(args.root, args.nodes, args.id, args.path);
 				
 				// Save data in this
 				args.jcv.nodes = args.nodes;
@@ -158,12 +158,11 @@
 			drawTree: function(htmlRoot, tree, currentId) {
 				// Find path from root to currentNode
 				var path = this.findPath(tree, currentId);
-				
 				// Convert tree structure to drawing input structure
 				var nodes = this.structureNodes(tree, path, currentId);
-							
+				
 				// Create HTML from structure
-				this.drawNodes(htmlRoot, nodes, currentId);				
+				this.drawNodes(htmlRoot, nodes, currentId, path);				
 				return {'path': path, 'nodes': nodes};
 			},
 
@@ -227,29 +226,34 @@
 			
 			// Drawing HTML
 			
-			drawNodes: function(root, nodes, currentId) {
-				for (index in nodes) {
-					var column = this.drawColumn(nodes[index], index, currentId);
+			drawNodes: function(root, nodes, currentId, path) {
+				for (var index = 0; index < nodes.length; index++) {
+					var column = this.drawColumn(nodes[index], index, currentId, path[index]);
 					column.appendTo(root);
 				}
 			},
 			
-			drawColumn: function(columnNodes, depth, currentId) {
+			drawColumn: function(columnNodes, depth, currentId, selectedIdx) {
 				var t = this;
 				var column = $('<li>').addClass(t.settings.classes.column);
 				var ul = $(t.settings.listElement).addClass(t.settings.classes.columnContent);
-				for(index in columnNodes) {
-					ul.append(this.drawNode(columnNodes[index], depth, currentId));
-				}
+				for (var idx = 0; idx < columnNodes.length; idx++)
+					ul.append(this.drawNode(columnNodes[idx], depth, currentId, (idx == selectedIdx)));
+				
 				column.html(ul);
 				return column;
 			},
 			
-			drawNode: function(node, depth, currentId) {
-				var li = $('<li>').addClass(this.settings.classes.node).attr('data-id', node.id).attr('data-depth', depth);
+			drawNode: function(node, depth, currentId, isOnSelectedPath) {
+				var li = $('<li>').addClass(this.settings.classes.node);
+				li.attr('data-id', node.id);
+				li.attr('data-depth', depth);
+				li.attr('data-clickable', node.clickable);
 				if (node.id == currentId)
 					li.addClass("active");
-					
+				else if (isOnSelectedPath)
+					li.addClass("parent");
+
 				li.html($.tmpl(node.tmpl, node.data));
 				return li;
 			},
