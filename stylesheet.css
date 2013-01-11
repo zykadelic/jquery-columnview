@@ -18,30 +18,64 @@ a:hover { color: #fff; background-color:#000; }
 
 
 #tree-wrapper {
-	width: 600px;
+	width: 100%;
 	overflow-x: scroll;
-	float: left;
-	border: 1px solid blue;
+	background-color: #f5f5f5;
+
+
 }
 
 .jcv-root {
 	padding: 0;
 	margin: 0;
 	list-style: none;
-	width: 10000px;
+	width: 1000px;
+	display: block;
 }
 
 .jcv-root .jcv-column {
 	float: left;
 	width: 200px;
-	height: 300px;
-	background: rgba(0,0,0, .1);
-	margin-right: 10px;
+	min-height: 100px;
 }
 
-.jcv-root .jcv-column .jcv-node-item.active {
-	background: #000;
+.jcv-root .jcv-column .jcv-node-item {
+	padding: 8px;
+	margin: 3px;
+	background-color: #e5e5e5;
+	font-size: 14px;
+	cursor: pointer;
+	font-family: "Tahoma", "Lucida Grande", sans-serif;
+	font-size: 11px;
+	font-weight: bold;
+	line-height: 18px;
+	text-decoration: none;
+	text-transform: uppercase;
+
 }
+
+.jcv-root .jcv-column .jcv-node-item a {
+	text-decoration: none;
+}
+
+
+.jcv-root .jcv-column .jcv-node-item.active {
+  background-color: #497eac;
+  background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(107, 160, 206)), to(rgb(73, 126, 172)));
+  background-image: -webkit-linear-gradient(top, rgb(107, 160, 206), rgb(73, 126, 172));
+  background-image: -moz-linear-gradient(top, rgb(107, 160, 206), rgb(73, 126, 172));
+  background-image: -o-linear-gradient(top, rgb(107, 160, 206), rgb(73, 126, 172));
+  background-image: -ms-linear-gradient(top, rgb(107, 160, 206), rgb(73, 126, 172));
+  background-image: linear-gradient(top, rgb(107, 160, 206), rgb(73, 126, 172));
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#6ba0ce', EndColorStr='#497eac');
+
+}
+
+.jcv-root .jcv-column .jcv-node-item.active a {
+  color: #fff;
+  text-shadow: 0 1px 0 #104266;
+ }
+
 
 /*#tree-wrapper ul {
 	list-style: none;
